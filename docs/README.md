@@ -108,7 +108,7 @@ class CustomModel(BaseModel):
 
 ## 技术栈 / Tech Stack
 
-- **深度学习框架 / DL Framework**: PyTorch / TensorFlow
+- **深度学习框架 / DL Framework**: PyTorch
 - **数据处理 / Data Processing**: NumPy, Pandas, OpenCV
 - **可视化 / Visualization**: Matplotlib, Seaborn, TensorBoard
 - **数据增强 / Augmentation**: Albumentations

@@ -855,7 +855,6 @@ python scripts/train.py --unfreeze_backbone --epochs 50
 
 ### 资源链接 / Resources
 - 📖 PyTorch文档: https://pytorch.org/docs/
-- 📖 TensorFlow文档: https://www.tensorflow.org/
 - 📖 项目GitHub: https://github.com/jurky123/image_classfication
 
 ### 常见错误解决 / Common Error Solutions
