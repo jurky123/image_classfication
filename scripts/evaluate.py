@@ -4,26 +4,109 @@ Model evaluation script
 Run this script to evaluate a trained model
 """
 
+import argparse
+import random
+from pathlib import Path
+
+import torch
+from torchvision.datasets import ImageFolder
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+import sys
+sys.path.insert(0, str(project_root))
+
+from src.models.convnext_model import ConvNeXtClassifier
+from src.data.preprocessing import get_val_transforms
+
 
 def main():
     """
     Main evaluation function
     """
-    # Parse command line arguments
-    
-    # Load configuration
-    
-    # Initialize data loader for test set
-    
-    # Load trained model
-    
-    # Initialize evaluator
-    
-    # Evaluate model
-    
-    # Generate and save evaluation report
-    
-    pass
+    parser = argparse.ArgumentParser(description='Random image evaluation')
+    parser.add_argument('--data-dir', type=str, default='test',
+                        help='Test dataset directory (ImageFolder format)')
+    parser.add_argument('--model-path', type=str,
+                        default='models/saved_models/best_model.pth',
+                        help='Path to trained model checkpoint')
+    parser.add_argument('--variant', type=str, default='tiny',
+                        choices=['tiny', 'small', 'base'],
+                        help='ConvNeXt model variant')
+    parser.add_argument('--image-size', type=int, default=224,
+                        help='Input image size')
+    parser.add_argument('--device', type=str, default='auto',
+                        help='Device: auto, cpu, or cuda')
+    parser.add_argument('--no-show', action='store_true',
+                        help='Do not display the image window')
+
+    args = parser.parse_args()
+
+    if args.device == 'auto':
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    else:
+        device = torch.device(args.device)
+
+    data_dir = Path(args.data_dir)
+    if not data_dir.exists():
+        fallback = Path('data') / 'test'
+        if fallback.exists():
+            data_dir = fallback
+        else:
+            raise FileNotFoundError(
+                f"Test dataset not found: {args.data_dir}"
+            )
+
+    transforms = get_val_transforms(image_size=args.image_size)
+    dataset = ImageFolder(str(data_dir), transform=transforms)
+    if len(dataset) == 0:
+        raise ValueError(f"No images found in {data_dir}")
+
+    image_path, true_idx = random.choice(dataset.samples)
+    class_names = dataset.classes
+    true_label = class_names[true_idx]
+
+    model = ConvNeXtClassifier(
+        num_classes=len(class_names),
+        variant=args.variant,
+        pretrained=False,
+        freeze_backbone_init=False
+    ).to(device)
+
+    checkpoint = torch.load(args.model_path, map_location=device)
+    if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+    else:
+        state_dict = checkpoint
+    model.load_state_dict(state_dict)
+    model.eval()
+
+    image = Image.open(image_path).convert('RGB')
+    input_tensor = transforms(image).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        logits = model(input_tensor)
+        probs = torch.softmax(logits, dim=1)
+        pred_idx = int(torch.argmax(probs, dim=1).item())
+        confidence = float(probs[0, pred_idx].item())
+
+    pred_label = class_names[pred_idx]
+
+    print(f"Image: {image_path}")
+    print(f"True:  {true_label}")
+    print(f"Pred:  {pred_label} (conf={confidence:.4f})")
+
+    if not args.no_show:
+        plt.figure(figsize=(6, 6))
+        plt.imshow(image)
+        plt.axis('off')
+        plt.title(
+            f"Pred: {pred_label} ({confidence:.2f})\nTrue: {true_label}"
+        )
+        plt.tight_layout()
+        plt.show()
 
 
 if __name__ == "__main__":
