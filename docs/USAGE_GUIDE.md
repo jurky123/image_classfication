@@ -48,6 +48,58 @@ This is a professional deep learning framework for image classification that pro
 git clone https://github.com/jurky123/image_classfication.git
 cd image_classfication
 
+# 安装依赖 / Install dependencies
+pip install -r requirements.txt
+
+### 2. 数据准备 / Data Preparation
+
+#### Oxford Flowers 102 数据集处理
+
+数据集已成功准备！运行以下命令查看数据组织结果：
+
+```bash
+# 查看数据统计
+python scripts/prepare_data.py
+
+# 重新组织数据（清理并重建）
+python scripts/prepare_data.py --clean
+```
+
+**数据集统计信息**:
+- 总图片数: 8,189 张
+- 类别数: 102 个花卉类别
+- 训练集: 1,020 张图片 (每类 10 张)
+- 验证集: 1,020 张图片 (每类 10 张)
+- 测试集: 6,149 张图片 (每类约 60 张)
+
+**组织后的目录结构**:
+```
+data/
+├── train/          # 训练集
+│   ├── class_001/  # 类别1
+│   ├── class_002/  # 类别2
+│   └── ...
+├── val/            # 验证集
+└── test/           # 测试集
+```
+
+#### 数据探索
+
+使用 Jupyter Notebook 探索数据集：
+
+```bash
+jupyter notebook notebooks/data_exploration.ipynb
+```
+
+数据探索包括：
+- 数据集统计信息
+- 类别分布可视化
+- 样本图片展示
+- 图片尺寸分析
+- 数据增强效果预览
+
+### 3. 快速训练示例
+
 # 创建虚拟环境 / Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
