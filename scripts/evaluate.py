@@ -7,6 +7,7 @@ Run this script to evaluate a trained model
 import argparse
 import random
 from pathlib import Path
+import time
 
 import torch
 from torchvision.datasets import ImageFolder
@@ -41,6 +42,8 @@ def main():
                         help='Device: auto, cpu, or cuda')
     parser.add_argument('--no-show', action='store_true',
                         help='Do not display the image window')
+    parser.add_argument('--interval', type=float, default=0.0,
+                        help='Delay between predictions in seconds')
 
     args = parser.parse_args()
 
@@ -64,9 +67,7 @@ def main():
     if len(dataset) == 0:
         raise ValueError(f"No images found in {data_dir}")
 
-    image_path, true_idx = random.choice(dataset.samples)
     class_names = dataset.classes
-    true_label = class_names[true_idx]
 
     model = ConvNeXtClassifier(
         num_classes=len(class_names),
@@ -83,30 +84,60 @@ def main():
     model.load_state_dict(state_dict)
     model.eval()
 
-    image = Image.open(image_path).convert('RGB')
-    input_tensor = transforms(image).unsqueeze(0).to(device)
+    def wait_for_next(fig):
+        state = {'action': None}
 
-    with torch.no_grad():
-        logits = model(input_tensor)
-        probs = torch.softmax(logits, dim=1)
-        pred_idx = int(torch.argmax(probs, dim=1).item())
-        confidence = float(probs[0, pred_idx].item())
+        def on_key(event):
+            if event.key in ['n', 'right', 'space']:
+                state['action'] = 'next'
+            elif event.key in ['q', 'escape']:
+                state['action'] = 'quit'
 
-    pred_label = class_names[pred_idx]
+        fig.canvas.mpl_connect('key_press_event', on_key)
+        while state['action'] is None:
+            plt.pause(0.05)
 
-    print(f"Image: {image_path}")
-    print(f"True:  {true_label}")
-    print(f"Pred:  {pred_label} (conf={confidence:.4f})")
+        return state['action']
 
-    if not args.no_show:
-        plt.figure(figsize=(6, 6))
-        plt.imshow(image)
-        plt.axis('off')
-        plt.title(
-            f"Pred: {pred_label} ({confidence:.2f})\nTrue: {true_label}"
-        )
-        plt.tight_layout()
-        plt.show()
+    try:
+        while True:
+            image_path, true_idx = random.choice(dataset.samples)
+            true_label = class_names[true_idx]
+
+            image = Image.open(image_path).convert('RGB')
+            input_tensor = transforms(image).unsqueeze(0).to(device)
+
+            with torch.no_grad():
+                logits = model(input_tensor)
+                probs = torch.softmax(logits, dim=1)
+                pred_idx = int(torch.argmax(probs, dim=1).item())
+                confidence = float(probs[0, pred_idx].item())
+
+            pred_label = class_names[pred_idx]
+
+            print(f"Image: {image_path}")
+            print(f"True:  {true_label}")
+            print(f"Pred:  {pred_label} (conf={confidence:.4f})")
+
+            if not args.no_show:
+                fig = plt.figure(figsize=(6, 6))
+                plt.imshow(image)
+                plt.axis('off')
+                plt.title(
+                    f"Pred: {pred_label} ({confidence:.2f})\nTrue: {true_label}"
+                    "\nPress N/Space/Right for next, Q/Esc to quit"
+                )
+                plt.tight_layout()
+                plt.show(block=False)
+                action = wait_for_next(fig)
+                plt.close(fig)
+                if action == 'quit':
+                    break
+
+            if args.interval > 0:
+                time.sleep(args.interval)
+    except KeyboardInterrupt:
+        print("\nStopped by user.")
 
 
 if __name__ == "__main__":

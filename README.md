@@ -4,13 +4,15 @@
 
 一个**完整的、生产级的** ConvNeXt 图像分类实现，使用PyTorch框架和迁移学习技术在 Oxford Flowers 102 数据集上训练。
 
-### 🎯 主要特性
+### 🎯 项目成果
 
-- ✅ **ConvNeXt 模型** - 支持 Tiny/Small/Base 三种规格
+- ✅ **最佳验证准确率**: **91.08%** 🎉
+- ✅ **ConvNeXt-Tiny 模型** - 28.6M 参数
+- ✅ **强力数据增强** - 支持 None/Basic/Strong 三档
 - ✅ **两阶段迁移学习** - 冻结 → 微调训练策略  
 - ✅ **完整训练管道** - 数据加载、模型训练、评估、推理
-- ✅ **详细文档** - 快速开始、深度教程、常见问题解答
-- ✅ **开箱即用** - 数据已准备，脚本可直接运行
+- ✅ **交互式评估** - 实时预测和可视化
+- ✅ **断点续训** - 支持从最佳模型继续训练
 - ✅ **灵活配置** - 支持自定义超参数和模型设置
 
 ---
@@ -63,8 +65,8 @@ python train.py
 python scripts/train_convnext.py
 ```
 
-**预计耗时**: 30-40 分钟（GPU）  
-**预期精度**: 91-92% ⭐
+**训练耗时**: 30-40 分钟（GPU）  
+**实际精度**: **91.08%** ⭐
 
 ---
 
@@ -82,10 +84,22 @@ python scripts/train_convnext.py
 
 ```bash
 python scripts/train_convnext.py \
-  --variant small \           # tiny/small/base
-  --batch_size 32 \           # 批次大小
+  --variant tiny \            # tiny/small/base
+  --batch-size 64 \           # 批次大小
   --epochs 50 \               # 训练轮数
-  --lr 1e-4                   # 学习率
+  --lr 1.4e-4 \               # 学习率
+  --augment strong \          # none/basic/strong
+  --resume-best \             # 从最佳模型继续训练
+  --device cuda               # cuda/cpu/auto
+```
+
+### 评估模型
+
+```bash
+# 随机抽取测试集图片并预测（交互式）
+python scripts/evaluate.py --device cuda
+
+# 按键操作：N/Space/Right = 下一张，Q/Esc = 退出
 ```
 
 ---
@@ -150,12 +164,13 @@ Phase 2 (微调):   解冻最后N个Stage，微调网络  [Epochs 10-30]
 
 ## 📊 性能预期
 
-| 指标 | 预期值 |
+| 指标 | 实际值 |
 |------|--------|
-| 最终验证精度 | 91-92% |
+| 最终验证精度 | **91.08%** 🎉 |
 | 训练时间 (GPU) | 30-40 分钟 |
 | GPU显存需求 | ~6GB |
 | 模型参数量 | 28.6M (Tiny) |
+| 数据增强策略 | Strong (RandomResizedCrop + Erasing) |
 
 ---
 

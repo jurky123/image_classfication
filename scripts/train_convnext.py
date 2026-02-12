@@ -71,6 +71,7 @@ class ConvNeXtTrainer:
         # 最佳指标
         self.best_acc = 0.0
         self.best_loss = float('inf')
+        self.resume_from_best = False
     
     def build_model(self, variant='tiny', pretrained=True):
         """
@@ -122,6 +123,7 @@ class ConvNeXtTrainer:
             state_dict = checkpoint
 
         self.model.load_state_dict(state_dict)
+        self.resume_from_best = True
         print(f"✓ 已加载最佳模型: {checkpoint_path}")
         return True
     
@@ -322,6 +324,10 @@ class ConvNeXtTrainer:
         print("="*70)
         print("开始训练")
         print("="*70)
+
+        if self.resume_from_best:
+            print("已从最佳模型恢复，立即解冻骨干网络")
+            self.model.unfreeze_backbone(num_stages_to_unfreeze=2)
         
         training_history = {
             'train_loss': [],

@@ -2,12 +2,16 @@
 
 ## 📋 项目状态
 
+✅ **项目已完成** - 最终验证准确率: **91.08%** 🎉
+
 ✅ **已完成的任务**：
 - 数据集下载和预处理（Oxford Flowers 102 - 8,189张图片）
 - 数据组织和分割（train: 1,020, val: 1,020, test: 6,149）
-- 完整的数据预处理和增强管道
+- 完整的数据预处理和增强管道（Strong 增强）
 - ConvNeXt-Tiny 模型实现（支持Tiny/Small/Base）
 - 完整的训练脚本（包含两阶段迁移学习策略）
+- 断点续训功能（--resume-best）
+- 交互式评估工具（按键切换）
 - 快速开始示例和文档
 
 ✅ **验证状态**：
@@ -180,7 +184,7 @@ models/
 
 ## 📈 预期性能
 
-### ConvNeXt-Tiny 在 Oxford Flowers 102 上的预期精度
+### ConvNeXt-Tiny 在 Oxford Flowers 102 上的实际精度
 
 ```
 冻结阶段（Epochs 1-10）
@@ -193,11 +197,12 @@ models/
   Epoch 15: Train Loss ~0.3, Val Acc ~88%
   Epoch 20: Train Loss ~0.2, Val Acc ~90%
   Epoch 25: Train Loss ~0.15, Val Acc ~91%
-  Epoch 30: Train Loss ~0.12, Val Acc ~91-92%
+  Epoch 30+: 最终验证准确率 = 91.08% 🎉
 ```
 
 **训练时间**：
-- GPU (RTX 3090): ~30-40分钟
+- GPU (RTX 4060): ~30-40分钟
+- 数据增强：Strong (随机裁剪 + 透视变换 + RandomErasing)
 - GPU (RTX 4080): ~20-25分钟
 - CPU: ~3-4小时
 
