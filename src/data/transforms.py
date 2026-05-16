@@ -3,7 +3,6 @@ Dataset preprocessing utilities for image classification
 """
 
 import os
-import cv2
 import numpy as np
 from PIL import Image
 import torch
@@ -203,16 +202,17 @@ def denormalize_image(image, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.22
 
 def calculate_dataset_statistics(data_dir):
     """
-    计算数据集的均值和标准差
-    
+    Compute dataset mean and std for normalization.
+
     Args:
-        data_dir: 数据集目录
-        
+        data_dir: Dataset directory path
+
     Returns:
-        mean, std: 通道均值和标准差
+        mean, std: Per-channel mean and standard deviation
     """
-    print("正在计算数据集统计信息...")
-    
+    import cv2
+    print("Computing dataset statistics...")
+
     all_images = []
     for root, dirs, files in os.walk(data_dir):
         for file in files:
@@ -223,13 +223,12 @@ def calculate_dataset_statistics(data_dir):
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     img = img.astype(np.float32) / 255.0
                     all_images.append(img)
-    
-    # 计算均值和标准差
+
     all_pixels = np.concatenate([img.reshape(-1, 3) for img in all_images])
     mean = np.mean(all_pixels, axis=0)
     std = np.std(all_pixels, axis=0)
-    
-    print(f"均值: {mean}")
-    print(f"标准差: {std}")
-    
+
+    print(f"Mean: {mean}")
+    print(f"Std: {std}")
+
     return mean, std

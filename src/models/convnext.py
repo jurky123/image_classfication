@@ -6,25 +6,12 @@ ConvNeXt: A Modern Take on Residual Networks (Meta AI)
 import torch
 import torch.nn as nn
 from torchvision.models import convnext_tiny, convnext_small, convnext_base
-from .base_model import BaseModel
 
 
-class ConvNeXtClassifier(BaseModel):
-    """
-    ConvNeXt-based image classifier with transfer learning support
-    """
-    
+class ConvNeXtClassifier(nn.Module):
     def __init__(self, num_classes=102, variant='tiny', pretrained=True, freeze_backbone_init=True):
-        """
-        Initialize ConvNeXt classifier
-        
-        Args:
-            num_classes: Number of output classes (default: 102 for Flowers dataset)
-            variant: ConvNeXt variant ('tiny', 'small', 'base', etc.)
-            pretrained: Whether to use ImageNet pretrained weights
-            freeze_backbone_init: Whether to freeze backbone layers during initial training
-        """
-        super(ConvNeXtClassifier, self).__init__(num_classes)
+        super().__init__()
+        self.num_classes = num_classes
         
         self.variant = variant
         self.pretrained = pretrained
@@ -39,10 +26,10 @@ class ConvNeXtClassifier(BaseModel):
         if freeze_backbone_init:
             self.freeze_backbone(True)
         
-        print(f"✓ ConvNeXt-{variant.capitalize()} 模型已创建")
-        print(f"  - 预训练: {'是' if pretrained else '否'}")
-        print(f"  - 冻结骨干网络: {'是' if freeze_backbone_init else '否'}")
-        print(f"  - 输出类别: {num_classes}")
+        print(f"[OK] ConvNeXt-{variant.capitalize()} created")
+        print(f"  - Pretrained: {'yes' if pretrained else 'no'}")
+        print(f"  - Frozen backbone: {'yes' if freeze_backbone_init else 'no'}")
+        print(f"  - Output classes: {num_classes}")
     
     def _load_pretrained_model(self):
         """
@@ -56,10 +43,6 @@ class ConvNeXtClassifier(BaseModel):
             'small': convnext_small,
             'base': convnext_base,
         }
-        
-        if self.variant not in model_mapping:
-            raise ValueError(f"不支持的 ConvNeXt 变体: {self.variant}. "
-                           f"支持: {list(model_mapping.keys())}")
         
         model_fn = model_mapping[self.variant]
         model = model_fn(pretrained=self.pretrained)
@@ -90,11 +73,10 @@ class ConvNeXtClassifier(BaseModel):
                     for i, module in enumerate(classifier):
                         if isinstance(module, nn.Linear):
                             classifier[i] = new_linear
-                            print(f"  - 分类头: {in_features} -> {self.num_classes}")
+                            print(f"  - Classifier head: {in_features} -> {self.num_classes}")
                             return
-        
-        # 备用方案：直接替换整个分类头
-        print(f"  - 分类头已替换为 {self.num_classes} 个输出类别")
+
+        print(f"  - Classifier head replaced: {self.num_classes} output classes")
     
     def freeze_backbone(self, freeze=True):
         """
@@ -110,8 +92,8 @@ class ConvNeXtClassifier(BaseModel):
         for param in self.model.classifier.parameters():
             param.requires_grad = True
         
-        status = "已冻结" if freeze else "已解冻"
-        print(f"✓ 骨干网络{status}")
+        status = "frozen" if freeze else "unfrozen"
+        print(f"[OK] Backbone {status}")
     
     def unfreeze_backbone(self, num_stages_to_unfreeze=2):
         """
@@ -134,7 +116,7 @@ class ConvNeXtClassifier(BaseModel):
             for param in self.model.features[i].parameters():
                 param.requires_grad = True
         
-        print(f"✓ 已部分解冻最后 {num_stages_to_unfreeze} 个阶段")
+        print(f"[OK] Unfroze last {num_stages_to_unfreeze} stages")
     
     def get_trainable_params(self):
         """
@@ -174,11 +156,11 @@ class ConvNeXtClassifier(BaseModel):
         trainable_params = self.get_trainable_params()
         
         print("="*70)
-        print(f"ConvNeXt-{self.variant.upper()} 模型摘要")
+        print(f"ConvNeXt-{self.variant.upper()} Summary")
         print("="*70)
-        print(f"总参数数: {total_params:,}")
-        print(f"可训练参数: {trainable_params:,}")
-        print(f"冻结参数: {total_params - trainable_params:,}")
+        print(f"Total params: {total_params:,}")
+        print(f"Trainable params: {trainable_params:,}")
+        print(f"Frozen params: {total_params - trainable_params:,}")
         print("="*70)
 
 
@@ -215,19 +197,19 @@ MODEL_INFO = {
         'params': '28.6M',
         'flops': '4.5G',
         'imagenet_acc': '82.1%',
-        'description': '轻量级模型，速度快'
+        'description': 'Lightweight, fast'
     },
     'small': {
         'params': '50.2M',
         'flops': '8.7G',
         'imagenet_acc': '83.6%',
-        'description': '平衡性能和速度'
+        'description': 'Balanced performance and speed'
     },
     'base': {
         'params': '88.6M',
         'flops': '15.4G',
         'imagenet_acc': '84.4%',
-        'description': '高性能，需要更多资源'
+        'description': 'High performance, more resources'
     },
 }
 
@@ -240,12 +222,12 @@ def print_model_info(variant='tiny'):
         variant: 模型变体
     """
     if variant not in MODEL_INFO:
-        print(f"不支持的模型: {variant}")
+        print(f"Unsupported model variant: {variant}")
         return
-    
+
     info = MODEL_INFO[variant]
-    print(f"\nConvNeXt-{variant.upper()} 信息:")
-    print(f"  - 参数数量: {info['params']}")
-    print(f"  - 计算量: {info['flops']}")
-    print(f"  - ImageNet 准确率: {info['imagenet_acc']}")
-    print(f"  - 描述: {info['description']}\n")
+    print(f"\nConvNeXt-{variant.upper()} Info:")
+    print(f"  - Parameters: {info['params']}")
+    print(f"  - FLOPs: {info['flops']}")
+    print(f"  - ImageNet accuracy: {info['imagenet_acc']}")
+    print(f"  - Description: {info['description']}\n")

@@ -1,15 +1,8 @@
-"""
-Models module initialization
-"""
-
-from .base_model import BaseModel
-from .cnn_models import SimpleCNN, ResNetModel, VGGModel
-from .transfer_learning import TransferLearning
+from .convnext import ConvNeXtClassifier, create_convnext_model, print_model_info, MODEL_INFO
 
 __all__ = [
-    'BaseModel',
-    'SimpleCNN',
-    'ResNetModel',
-    'VGGModel',
-    'TransferLearning',
+    'ConvNeXtClassifier',
+    'create_convnext_model',
+    'print_model_info',
+    'MODEL_INFO',
 ]

@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Model evaluation script
-Run this script to evaluate a trained model
-"""
+"""Interactive model evaluation with matplotlib visualization."""
 
 import argparse
 import random
@@ -14,34 +11,22 @@ from torchvision.datasets import ImageFolder
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent
-import sys
-sys.path.insert(0, str(project_root))
-
-from src.models.convnext_model import ConvNeXtClassifier
-from src.data.preprocessing import get_val_transforms
+from src.models.convnext import ConvNeXtClassifier
+from src.data.transforms import get_val_transforms
 
 
 def main():
-    """
-    Main evaluation function
-    """
-    parser = argparse.ArgumentParser(description='Random image evaluation')
-    parser.add_argument('--data-dir', type=str, default='test',
+    parser = argparse.ArgumentParser(description='Interactive model evaluation')
+    parser.add_argument('--data-dir', type=str, default='data/test',
                         help='Test dataset directory (ImageFolder format)')
     parser.add_argument('--model-path', type=str,
-                        default='models/saved_models/best_model.pth',
-                        help='Path to trained model checkpoint')
+                        default='models/saved_models/best_model.pth')
     parser.add_argument('--variant', type=str, default='tiny',
-                        choices=['tiny', 'small', 'base'],
-                        help='ConvNeXt model variant')
-    parser.add_argument('--image-size', type=int, default=224,
-                        help='Input image size')
-    parser.add_argument('--device', type=str, default='auto',
-                        help='Device: auto, cpu, or cuda')
+                        choices=['tiny', 'small', 'base'])
+    parser.add_argument('--image-size', type=int, default=224)
+    parser.add_argument('--device', type=str, default='auto')
     parser.add_argument('--no-show', action='store_true',
-                        help='Do not display the image window')
+                        help='Do not display image window')
     parser.add_argument('--interval', type=float, default=0.0,
                         help='Delay between predictions in seconds')
 
@@ -58,9 +43,7 @@ def main():
         if fallback.exists():
             data_dir = fallback
         else:
-            raise FileNotFoundError(
-                f"Test dataset not found: {args.data_dir}"
-            )
+            raise FileNotFoundError(f"Test dataset not found: {args.data_dir}")
 
     transforms = get_val_transforms(image_size=args.image_size)
     dataset = ImageFolder(str(data_dir), transform=transforms)

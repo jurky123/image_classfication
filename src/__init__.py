@@ -1,6 +1,5 @@
-"""
-Image Classification Project
-This package contains modules for training and evaluating image classification models.
-"""
+__version__ = "0.2.0"
 
-__version__ = "0.1.0"
+from .trainer import ConvNeXtTrainer, TrainerConfig
+
+__all__ = ['ConvNeXtTrainer', 'TrainerConfig']
